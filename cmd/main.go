@@ -46,12 +46,17 @@ func Run(ctx *cli.Context) error {
 	defer file.Close()
 
 	dict := mandarinfcard.ReadAll(file)
-	picked := mandarinfcard.Pick(time.Now(), int(ctx.Int("time")), len(dict))
 
-	msg := GenMsg(dict[picked], ctx.IsSet("question"))
-	err = mandarinfcard.NotiSend(ctx.Context, ctx.String("slack_url"), msg)
-	if err != nil {
-		return err
+	for i := 0; i < ctx.Int("time"); i++ {
+		picked := mandarinfcard.Pick(time.Now(), i, len(dict))
+
+		msg := GenMsg(dict[picked], ctx.IsSet("question"))
+		log.Printf("picked | msg=%s", msg)
+		err = mandarinfcard.NotiSend(ctx.Context, ctx.String("slack_url"), msg)
+		time.Sleep(time.Second * 1)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

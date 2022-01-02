@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
-)
-
-const (
-	slackUrl = "https://hooks.slack.com/services/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"
 )
 
 func NotiSend(ctx context.Context, url string, msg string) error {
@@ -25,7 +23,7 @@ func NotiSend(ctx context.Context, url string, msg string) error {
 	}
 	body := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest("POST", slackUrl, body)
+	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return err
 	}
@@ -34,6 +32,10 @@ func NotiSend(ctx context.Context, url string, msg string) error {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
+	}
+	respPayload, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http_status=%d, resp=%s", resp.StatusCode, string(respPayload))
 	}
 	defer func() {
 		_ = resp.Body.Close()
